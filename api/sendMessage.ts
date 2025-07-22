@@ -1,7 +1,7 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Translate } from "@google-cloud/translate/build/src/v2";
-import { Language, Role, Message } from "../types";
-import { SYSTEM_PROMPTS } from "../constants";
+import { Language, Role, Message } from "../src/types";
+import { SYSTEM_PROMPTS } from "../src/constants";
 
 // This is a Vercel Serverless Function, which acts as our secure backend.
 
