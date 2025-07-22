@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { marked } from 'marked';
+import marked from 'marked';
 import { Message, Role } from '../types';
 
 declare global {
@@ -19,7 +19,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const createMarkup = (text: string) => {
-    const rawMarkup = marked.parse(text);
+    const rawMarkup = marked(text);
     return { __html: rawMarkup };
   };
 
