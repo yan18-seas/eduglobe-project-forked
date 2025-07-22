@@ -6,6 +6,7 @@
     <title>EduGlobe AI</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.24.8/babel.min.js"></script>
     <script>
       window.MathJax = {
         tex: {
@@ -58,6 +59,6 @@
 </head>
   <body class="bg-slate-900">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="text/babel" data-type="module" src="/index.tsx"></script>
   </body>
 </html>
