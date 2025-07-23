@@ -5,8 +5,8 @@ import { Message, Role } from '../types';
 declare global {
   interface Window {
     MathJax: {
-      typeset(elements?: HTMLElement[]): void;
-    }
+      typesetPromise: (elements?: HTMLElement[]) => Promise<void>;
+    };
   }
 }
 
@@ -24,10 +24,12 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   };
 
   useEffect(() => {
-    if (contentRef.current && window.MathJax) {
-      window.MathJax.typeset([contentRef.current]);
-    }
-  }, [message.text]);
+  if (contentRef.current && window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+    window.MathJax.typesetPromise([contentRef.current]).catch((err) =>
+      console.error("MathJax rendering error:", err)
+    );
+   }
+ }, [message.text]);
 
 
   return (
