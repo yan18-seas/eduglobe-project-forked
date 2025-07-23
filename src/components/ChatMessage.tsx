@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import marked from 'marked';
+import { marked } from 'marked';
 import { Message, Role } from '../types';
 
 declare global {
