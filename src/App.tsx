@@ -1,3 +1,4 @@
+import './index.css';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Language, Message, Role, Conversation } from './types';
