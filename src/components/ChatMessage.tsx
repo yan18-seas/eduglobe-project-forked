@@ -36,7 +36,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
         ref={contentRef}
         className={`max-w-xl lg:max-w-2xl px-5 py-3 rounded-2xl shadow-md ${isUser ? 'bg-violet-600 text-white rounded-br-none' : 'bg-teal-900 text-slate-200 rounded-bl-none'}`}
       >
-        <div className="prose prose-invert prose-sm" dangerouslySetInnerHTML={createMarkup(message.text)} />
+        <div className="prose prose-sm prose-invert" dangerouslySetInnerHTML={createMarkup(message.text)} />
       </div>
        <style>{`
         @keyframes fade-in {
