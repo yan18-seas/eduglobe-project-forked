@@ -66,6 +66,8 @@ export default async function handler(req: Request): Promise<Response> {
     });
   }
 
+console.log("✅ Handler started. Env key:", process.env.GEMINI_API_KEY);
+
   if (!process.env.GEMINI_API_KEY) {
     return new Response(JSON.stringify({ error: "GEMINI_API_KEY is not configured" }), { status: 500 });
   }
