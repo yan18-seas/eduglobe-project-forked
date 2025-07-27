@@ -1,1 +1,1 @@
-# eduglobe-project 
+# eduglobe-project
