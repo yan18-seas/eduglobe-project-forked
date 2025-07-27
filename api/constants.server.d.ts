@@ -6,3 +6,8 @@ export enum Language {
 }
 
 export const SYSTEM_PROMPTS: Record<Language, string>;
+
+export const Role: {
+  USER: 'user';
+  AI: 'ai';
+};
