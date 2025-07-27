@@ -1,3 +1,15 @@
+export enum Role {
+  USER = 'user',
+  AI = 'ai',
+}
+
+export interface Message {
+  id: string;
+  role: Role;
+  text: string;
+  language: Language;
+}
+
 export enum Language {
   ENGLISH = 'English',
   TIBETAN = 'བོད་མི (Tibetan)',
