@@ -5,20 +5,20 @@ import { SYSTEM_PROMPTS, Language, Role } from "./constants.server.js";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Language mapping
-const getLanguageCode = (lang: Language): string => {
+const getLanguageCode = (lang: string): string => {
   const codes: Record<string, string> = {
     [Language.ENGLISH]: "en",
     [Language.TIBETAN]: "bo",
     [Language.HAWAIIAN]: "haw",
     [Language.TELUGU]: "te",
   };
-  return codes[lang] || "en";
+  return codes[lang as keyof typeof codes] || "en";
 };
 
 // Translate text to target language using REST
 const translateText = async (
   text: string,
-  targetLang: Language
+  targetLang: string
 ): Promise<string> => {
   const target = getLanguageCode(targetLang);
   if (target === "en") return text;
@@ -39,7 +39,7 @@ const translateText = async (
 // Generate short conversation title
 const generateChatName = async (
   firstMessage: string,
-  lang: Language
+  lang: string
 ): Promise<string> => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -71,20 +71,20 @@ export default async function handler(req: Request): Promise<Response> {
 
   try {
     const body: {
-  messages: { role: string; text: string; language: string }[];
-  language: string;
-  conversationName?: string;
-} = await req.json();
+      messages: { role: string; text: string; language: string }[];
+      language: string;
+      conversationName?: string;
+    } = await req.json();
+
     const { messages, language, conversationName } = body;
 
     const userMessages = messages.filter((m: any) => m.role === Role.USER);
     const lastUserMessage = userMessages[userMessages.length - 1]?.text ?? "";
 
-    // Inject system prompt first
     const translatedMessages = [
       {
         role: "system",
-        parts: [{ text: SYSTEM_PROMPTS[language] }],
+        parts: [{ text: SYSTEM_PROMPTS[language as keyof typeof SYSTEM_PROMPTS] }],
       },
       ...(await Promise.all(
         messages.map(async (msg: any) => ({
@@ -107,9 +107,9 @@ export default async function handler(req: Request): Promise<Response> {
       history: translatedMessages,
     });
 
-    const result = await chat.sendMessage({
-      parts: [{ text: lastUserMessage }],
-    });
+    const result = await chat.sendMessage([
+      { text: lastUserMessage },
+    ]);
 
     const englishResponse = await result.response.text();
     const translatedResponse = await translateText(englishResponse, language);
