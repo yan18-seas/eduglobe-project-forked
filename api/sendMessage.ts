@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { SYSTEM_PROMPTS } from "../constants.server";
+import { SYSTEM_PROMPTS } from "./constants.server";
 import { Role, Message, Language } from "../src/types";
 
 // Gemini setup
@@ -99,19 +99,17 @@ export default async function handler(req: Request): Promise<Response> {
       }))
     );
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      generationConfig: { temperature: 0.7 },
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const result = await model.generateContent({
-      contents: translatedMessages,
+    const chat = model.startChat({
+      history: translatedMessages,
       systemInstruction: {
         role: "system",
         parts: [{ text: SYSTEM_PROMPTS[language] }],
       },
     });
 
+    const result = await chat.sendMessage(lastUserMessage);
     const englishResponse = await result.response.text();
     const translatedResponse = await translateText(englishResponse, language);
 
