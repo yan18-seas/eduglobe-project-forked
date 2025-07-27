@@ -27,11 +27,18 @@ const translateText = async (
   console.log("📡 Calling Translate API with target:", target);
 
   try {
+    console.log("→ Translating:", text, "to", target);
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ q: text, target, format: "text" }),
     });
+    
+    if (!res.ok) {
+  const errText = await res.text();
+  console.error("Translation API error:", res.status, errText);
+  return text;
+}
 
     const json = await res.json();
     console.log("✅ Translate API response:", JSON.stringify(json));
