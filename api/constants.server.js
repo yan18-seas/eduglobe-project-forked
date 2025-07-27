@@ -1,16 +1,9 @@
-export enum Role {
+export const Role {
   USER = 'user',
   AI = 'ai',
 }
 
-export interface Message {
-  id: string;
-  role: Role;
-  text: string;
-  language: Language;
-}
-
-export enum Language {
+export const Language {
   ENGLISH = 'English',
   TIBETAN = 'བོད་མི (Tibetan)',
   HAWAIIAN = 'ʻŌlelo Hawaiʻi (Hawaiian)',
