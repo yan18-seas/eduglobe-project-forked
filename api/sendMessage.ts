@@ -73,7 +73,7 @@ export default async function handler(req: Request): Promise<Response> {
     const body = await req.json();
     const { messages, language, conversationName } = body;
 
-    const userMessages = messages.filter((m) => m.role === Role.USER);
+    const userMessages = messages.filter((m: any) => m.role === Role.USER);
     const lastUserMessage = userMessages[userMessages.length - 1]?.text ?? "";
 
     // Inject system prompt first
@@ -83,7 +83,7 @@ export default async function handler(req: Request): Promise<Response> {
         parts: [{ text: SYSTEM_PROMPTS[language] }],
       },
       ...(await Promise.all(
-        messages.map(async (msg) => ({
+        messages.map(async (msg: any) => ({
           role: msg.role === Role.USER ? "user" : "model",
           parts: [
             {
