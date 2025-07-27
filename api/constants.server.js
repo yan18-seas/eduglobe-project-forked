@@ -1,14 +1,14 @@
 export const Role {
   USER = 'user',
   AI = 'ai',
-}
+};
 
 export const Language {
   ENGLISH = 'English',
   TIBETAN = 'བོད་མི (Tibetan)',
   HAWAIIAN = 'ʻŌlelo Hawaiʻi (Hawaiian)',
   TELUGU = 'తెలుగు (Telugu)',
-}
+};
 
 export const LANGUAGES = [
   Language.ENGLISH,
