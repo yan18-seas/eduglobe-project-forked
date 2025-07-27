@@ -2,10 +2,12 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Language, SYSTEM_PROMPTS } from "./constants.server";
 import { Role, Message } from "../src/types";
 
-// Gemini setup
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+// Initialize Gemini client
+const genAI = new GoogleGenerativeAI({
+  apiKey: process.env.GEMINI_API_KEY || "",
+});
 
-// Language mapping
+// Map supported languages to ISO codes
 const getLanguageCode = (lang: Language): string => {
   const codes: Record<string, string> = {
     [Language.ENGLISH]: "en",
@@ -16,7 +18,7 @@ const getLanguageCode = (lang: Language): string => {
   return codes[lang] || "en";
 };
 
-// Translate text to target language using REST
+// Translate text using Google Translate REST API
 const translateText = async (
   text: string,
   targetLang: Language
@@ -37,7 +39,7 @@ const translateText = async (
   return json?.data?.translations?.[0]?.translatedText || text;
 };
 
-// Generate short conversation title
+// Generate short title for conversation
 const generateChatName = async (
   firstMessage: string,
   lang: Language
@@ -47,8 +49,7 @@ const generateChatName = async (
     const prompt = `Summarize this user query into a short, 3-5 word chat title. Reply in "${lang}": "${firstMessage}"`;
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = await response.text();
+    const text = await result.text();
     return text.replace(/["'.]/g, "");
   } catch (err) {
     console.error("Error generating chat name:", err);
@@ -56,7 +57,7 @@ const generateChatName = async (
   }
 };
 
-// Route handler
+// Handler
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
@@ -86,7 +87,11 @@ export default async function handler(req: Request): Promise<Response> {
     const userMessages = messages.filter((m) => m.role === Role.USER);
     const lastUserMessage = userMessages[userMessages.length - 1]?.text ?? "";
 
-    const translatedMessages = await Promise.all(
+    // Translate all user messages to English
+    const translatedMessages: Array<{
+      role: "user" | "model";
+      parts: { text: string }[];
+    }> = await Promise.all(
       messages.map(async (msg) => ({
         role: msg.role === Role.USER ? "user" : "model",
         parts: [
@@ -100,21 +105,20 @@ export default async function handler(req: Request): Promise<Response> {
       }))
     );
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      generationConfig: { temperature: 0.7 },
-      systemInstruction: {
-        role: "system",
+    // Prepend system instruction to the conversation
+    const messagesWithSystem = [
+      {
+        role: "user" as const,
         parts: [{ text: SYSTEM_PROMPTS[language] }],
       },
-    });
+      ...translatedMessages,
+    ];
 
-    const result = await model.generateContent({
-      contents: translatedMessages,
-    });
+    // Generate AI response
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent({ contents: messagesWithSystem });
 
-    const response = await result.response;
-    const englishResponse = await response.text();
+    const englishResponse = await result.text();
     const translatedResponse = await translateText(englishResponse, language);
 
     const aiMessage: Message = {
