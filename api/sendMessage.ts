@@ -23,17 +23,24 @@ const translateText = async (
   const target = getLanguageCode(targetLang);
   if (target === "en") return text;
 
-  const res = await fetch(
-    `https://translation.googleapis.com/language/translate/v2?key=${process.env.GEMINI_API_KEY}`,
-    {
+  const url = `https://translation.googleapis.com/language/translate/v2?key=${process.env.GEMINI_API_KEY}`;
+  console.log("📡 Calling Translate API with target:", target);
+
+  try {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ q: text, target, format: "text" }),
-    }
-  );
+    });
 
-  const json = await res.json();
-  return json?.data?.translations?.[0]?.translatedText || text;
+    const json = await res.json();
+    console.log("✅ Translate API response:", JSON.stringify(json));
+
+    return json?.data?.translations?.[0]?.translatedText || text;
+  } catch (err) {
+    console.error("❌ Translation error:", err);
+    return text;
+  }
 };
 
 // Generate short conversation title
@@ -49,7 +56,7 @@ const generateChatName = async (
     const text = await result.response.text();
     return text.replace(/["'.]/g, "");
   } catch (err) {
-    console.error("Error generating chat name:", err);
+    console.error("⚠️ Error generating chat name:", err);
     return firstMessage.slice(0, 30) + "...";
   }
 };
@@ -77,11 +84,13 @@ export default async function handler(req: Request): Promise<Response> {
     } = await req.json();
 
     const { messages, language, conversationName } = body;
+    console.log("📥 Incoming request with messages:", messages);
 
     const userMessages = messages.filter(
       (m: { role: string }) => m.role === Role.USER
     );
     const lastUserMessage = userMessages[userMessages.length - 1]?.text ?? "";
+    console.log("🧠 Last user message:", lastUserMessage);
 
     const translatedMessages = [
       {
@@ -89,30 +98,24 @@ export default async function handler(req: Request): Promise<Response> {
         parts: [{ text: SYSTEM_PROMPTS[language as keyof typeof SYSTEM_PROMPTS] }],
       },
       ...(await Promise.all(
-        messages.map(async (msg: { role: string; text: string }) => ({
-          role: msg.role === Role.USER ? "user" : "model",
-          parts: [
-            {
-              text:
-                msg.role === Role.USER
-                  ? await translateText(msg.text, Language.ENGLISH)
-                  : msg.text,
-            },
-          ],
-        }))
+        messages.map(async (msg: { role: string; text: string }) => {
+          const translatedText = msg.role === Role.USER
+            ? await translateText(msg.text, Language.ENGLISH)
+            : msg.text;
+          return {
+            role: msg.role === Role.USER ? "user" : "model",
+            parts: [{ text: translatedText }],
+          };
+        })
       )),
     ];
 
+    console.log("📜 Translated message history:", translatedMessages);
+
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const chat = model.startChat({ history: translatedMessages });
 
-    const chat = model.startChat({
-      history: translatedMessages,
-    });
-
-    const result = await chat.sendMessage([
-      { text: lastUserMessage },
-    ]);
-
+    const result = await chat.sendMessage([{ text: lastUserMessage }]);
     const englishResponse = await result.response.text();
     const translatedResponse = await translateText(englishResponse, language);
 
@@ -128,6 +131,8 @@ export default async function handler(req: Request): Promise<Response> {
       title = await generateChatName(lastUserMessage, language);
     }
 
+    console.log("✅ Final AI message:", aiMessage);
+
     return new Response(
       JSON.stringify({ message: aiMessage, conversationName: title }),
       {
@@ -136,7 +141,7 @@ export default async function handler(req: Request): Promise<Response> {
       }
     );
   } catch (err) {
-    console.error("Internal error:", err);
+    console.error("🔥 Internal server error:", err);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
     });
