@@ -1,9 +1,9 @@
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Language, SYSTEM_PROMPTS } from "./constants.server";
 import { Role, Message } from "../src/types";
 
 // Gemini setup
-const genAI = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Language mapping
 const getLanguageCode = (lang: Language): string => {
@@ -47,7 +47,8 @@ const generateChatName = async (
     const prompt = `Summarize this user query into a short, 3-5 word chat title. Reply in "${lang}": "${firstMessage}"`;
 
     const result = await model.generateContent(prompt);
-    const text = await result.text();
+    const response = await result.response;
+    const text = await response.text();
     return text.replace(/["'.]/g, "");
   } catch (err) {
     console.error("Error generating chat name:", err);
@@ -100,7 +101,7 @@ export default async function handler(req: Request): Promise<Response> {
     );
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-pro",
+      model: "gemini-1.5-flash",
       generationConfig: { temperature: 0.7 },
       systemInstruction: {
         role: "system",
@@ -112,7 +113,8 @@ export default async function handler(req: Request): Promise<Response> {
       contents: translatedMessages,
     });
 
-    const englishResponse = await result.text();
+    const response = await result.response;
+    const englishResponse = await response.text();
     const translatedResponse = await translateText(englishResponse, language);
 
     const aiMessage: Message = {
