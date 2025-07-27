@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { SYSTEM_PROMPTS, Language, Role, Message } from "./constants.server.js";
+import { SYSTEM_PROMPTS, Language, Role } from "./constants.server.js";
 
 // Gemini setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
@@ -71,51 +71,47 @@ export default async function handler(req: Request): Promise<Response> {
 
   try {
     const body = await req.json();
-    const {
-      messages,
-      language,
-      conversationName,
-    }: {
-      messages: Message[];
-      language: Language;
-      conversationName?: string;
-    } = body;
+    const { messages, language, conversationName } = body;
 
     const userMessages = messages.filter((m) => m.role === Role.USER);
     const lastUserMessage = userMessages[userMessages.length - 1]?.text ?? "";
 
-    const translatedMessages = await Promise.all(
-      messages.map(async (msg) => ({
-        role: msg.role === Role.USER ? "user" : "model",
-        parts: [
-          {
-            text:
-              msg.role === Role.USER
-                ? await translateText(msg.text, Language.ENGLISH)
-                : msg.text,
-          },
-        ],
-      }))
-    );
+    // Inject system prompt first
+    const translatedMessages = [
+      {
+        role: "system",
+        parts: [{ text: SYSTEM_PROMPTS[language] }],
+      },
+      ...(await Promise.all(
+        messages.map(async (msg) => ({
+          role: msg.role === Role.USER ? "user" : "model",
+          parts: [
+            {
+              text:
+                msg.role === Role.USER
+                  ? await translateText(msg.text, Language.ENGLISH)
+                  : msg.text,
+            },
+          ],
+        }))
+      )),
+    ];
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const chat = model.startChat({
-      history: translatedMessages
+      history: translatedMessages,
     });
 
-const result = await chat.sendMessage({
-  content: lastUserMessage,
-  systemInstruction: {
-    role: "system",
-    parts: [{ text: SYSTEM_PROMPTS[language] }],
-  },
-});
+    const result = await chat.sendMessage({
+      role: "user",
+      parts: [{ text: lastUserMessage }],
+    });
 
-const englishResponse = await result.response.text();
-const translatedResponse = await translateText(englishResponse, language);
+    const englishResponse = await result.response.text();
+    const translatedResponse = await translateText(englishResponse, language);
 
-    const aiMessage: Message = {
+    const aiMessage = {
       id: Date.now().toString(),
       role: Role.AI,
       text: translatedResponse,
