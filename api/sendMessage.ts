@@ -1,9 +1,9 @@
-import { GoogleGenerativeAI } from "@google/genai";
-import { SYSTEM_PROMPTS } from "../src/constants";
+import { GoogleGenAI } from "@google/genai";
+import { SYSTEM_PROMPTS } from "../../src/constants";
 import { Language, Role, Message } from "../src/types";
 
 // Gemini setup
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 // Language mapping
 const getLanguageCode = (lang: Language): string => {
@@ -92,7 +92,7 @@ export default async function handler(req: Request): Promise<Response> {
           {
             text:
               msg.role === Role.USER
-                ? await translateText(msg.text, "English")
+                ? await translateText(msg.text, Language.ENGLISH)
                 : msg.text,
           },
         ],
