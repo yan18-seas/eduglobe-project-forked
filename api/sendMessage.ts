@@ -70,7 +70,11 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const body = await req.json();
+    const body: {
+  messages: { role: string; text: string; language: string }[];
+  language: string;
+  conversationName?: string;
+} = await req.json();
     const { messages, language, conversationName } = body;
 
     const userMessages = messages.filter((m: any) => m.role === Role.USER);
@@ -104,7 +108,6 @@ export default async function handler(req: Request): Promise<Response> {
     });
 
     const result = await chat.sendMessage({
-      role: "user",
       parts: [{ text: lastUserMessage }],
     });
 
