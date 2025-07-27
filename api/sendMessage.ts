@@ -1,9 +1,9 @@
-import { GoogleGenAI } from "@google/genai";
-import { SYSTEM_PROMPTS } from "../../src/constants";
+import { GoogleGenerativeAI } from "@google/genai";
+import { SYSTEM_PROMPTS } from "../src/constants";
 import { Language, Role, Message } from "../src/types";
 
 // Gemini setup
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const genAI = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 // Language mapping
 const getLanguageCode = (lang: Language): string => {
@@ -43,7 +43,7 @@ const generateChatName = async (
   lang: Language
 ): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `Summarize this user query into a short, 3-5 word chat title. Reply in "${lang}": "${firstMessage}"`;
 
     const result = await model.generateContent(prompt);
