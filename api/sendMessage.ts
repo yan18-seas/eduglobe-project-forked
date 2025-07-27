@@ -8,11 +8,10 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 // Language mapping
 const getLanguageCode = (lang: Language): string => {
   const codes: Record<string, string> = {
-    English: "en",
-    Somali: "so",
-    Spanish: "es",
-    French: "fr",
-    Arabic: "ar",
+    [Language.ENGLISH]: "en",
+    [Language.TIBETAN]: "bo",
+    [Language.HAWAIIAN]: "haw",
+    [Language.TELUGU]: "te",
   };
   return codes[lang] || "en";
 };
