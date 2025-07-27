@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/genai";
-import { SYSTEM_PROMPTS } from "../src/constants";
-import { Language, Role, Message } from "../src/types";
+import { Language, SYSTEM_PROMPTS } from "./constants.server";
+import { Role, Message } from "../src/types";
 
 // Gemini setup
 const genAI = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || "" });
