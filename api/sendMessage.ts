@@ -1,9 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { SYSTEM_PROMPTS } from "../constants.server";
-import { Role, Message, Language } from "../src/types";
+import { SYSTEM_PROMPTS, Language } from "./constants.server.js";
+import { Role, Message } from "../src/types";
 
 // Gemini setup
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Language mapping
 const getLanguageCode = (lang: Language): string => {
@@ -109,12 +109,7 @@ export default async function handler(req: Request): Promise<Response> {
       },
     });
 
-    const result = await chat.sendMessage([
-      {
-        text: await translateText(lastUserMessage, Language.ENGLISH),
-      },
-    ]);
-
+    const result = await chat.sendMessage(lastUserMessage);
     const englishResponse = await result.response.text();
     const translatedResponse = await translateText(englishResponse, language);
 
