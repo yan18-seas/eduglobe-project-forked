@@ -1,9 +1,9 @@
-export const Role {
+export const Role = {
   USER = 'user',
   AI = 'ai',
 };
 
-export const Language {
+export const Language = {
   ENGLISH = 'English',
   TIBETAN = 'བོད་མི (Tibetan)',
   HAWAIIAN = 'ʻŌlelo Hawaiʻi (Hawaiian)',
