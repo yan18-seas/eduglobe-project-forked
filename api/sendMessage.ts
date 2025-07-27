@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/genai";
 import { SYSTEM_PROMPTS } from "../src/constants";
 import { Language, Role, Message } from "../src/types";
 
