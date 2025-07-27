@@ -78,7 +78,9 @@ export default async function handler(req: Request): Promise<Response> {
 
     const { messages, language, conversationName } = body;
 
-    const userMessages = messages.filter((m: any) => m.role === Role.USER);
+    const userMessages = messages.filter(
+      (m: { role: string }) => m.role === Role.USER
+    );
     const lastUserMessage = userMessages[userMessages.length - 1]?.text ?? "";
 
     const translatedMessages = [
@@ -87,7 +89,7 @@ export default async function handler(req: Request): Promise<Response> {
         parts: [{ text: SYSTEM_PROMPTS[language as keyof typeof SYSTEM_PROMPTS] }],
       },
       ...(await Promise.all(
-        messages.map(async (msg: any) => ({
+        messages.map(async (msg: { role: string; text: string }) => ({
           role: msg.role === Role.USER ? "user" : "model",
           parts: [
             {
