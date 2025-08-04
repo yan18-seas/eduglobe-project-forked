@@ -33,12 +33,12 @@ const translateText = async (
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ q: text, target, format: "text" }),
     });
-    
+
     if (!res.ok) {
-  const errText = await res.text();
-  console.error("Translation API error:", res.status, errText);
-  return text;
-}
+      const errText = await res.text();
+      console.error("Translation API error:", res.status, errText);
+      return text;
+    }
 
     const json = await res.json();
     console.log("✅ Translate API response:", JSON.stringify(json));
@@ -68,27 +68,27 @@ const generateChatName = async (
   }
 };
 
-// Route handler
-export default async function handler(req: Request): Promise<Response> {
+// ------ ONLY CHANGES BELOW: Express-style handler & body parsing ------
+
+// Route handler (Express-style for Vercel Node serverless)
+export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
-      status: 405,
-    });
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   if (!process.env.GEMINI_API_KEY) {
-    return new Response(
-      JSON.stringify({ error: "GEMINI_API_KEY is not configured" }),
-      { status: 500 }
-    );
+    return res
+      .status(500)
+      .json({ error: "GEMINI_API_KEY is not configured" });
   }
 
   try {
+    // ⬇⬇⬇ CHANGED: use Express-parsed body instead of await req.json()
     const body: {
       messages: { role: string; text: string; language: string }[];
       language: string;
       conversationName?: string;
-    } = await req.json();
+    } = req.body;
 
     const { messages, language, conversationName } = body;
     console.log("📥 Incoming request with messages:", messages);
@@ -102,13 +102,19 @@ export default async function handler(req: Request): Promise<Response> {
     const translatedMessages = [
       {
         role: "system",
-        parts: [{ text: SYSTEM_PROMPTS[language as keyof typeof SYSTEM_PROMPTS] }],
+        parts: [
+          {
+            text:
+              SYSTEM_PROMPTS[language as keyof typeof SYSTEM_PROMPTS],
+          },
+        ],
       },
       ...(await Promise.all(
         messages.map(async (msg: { role: string; text: string }) => {
-          const translatedText = msg.role === Role.USER
-            ? await translateText(msg.text, Language.ENGLISH)
-            : msg.text;
+          const translatedText =
+            msg.role === Role.USER
+              ? await translateText(msg.text, Language.ENGLISH)
+              : msg.text;
           return {
             role: msg.role === Role.USER ? "user" : "model",
             parts: [{ text: translatedText }],
@@ -140,17 +146,13 @@ export default async function handler(req: Request): Promise<Response> {
 
     console.log("✅ Final AI message:", aiMessage);
 
-    return new Response(
-      JSON.stringify({ message: aiMessage, conversationName: title }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    // ⬇⬇⬇ CHANGED: Express-style response
+    return res
+      .status(200)
+      .json({ message: aiMessage, conversationName: title });
   } catch (err) {
     console.error("🔥 Internal server error:", err);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
-    });
+    // ⬇⬇⬇ CHANGED: Express-style error response
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }
