@@ -72,6 +72,16 @@ const generateChatName = async (
 
 // Route handler (Express-style for Vercel Node serverless)
 export default async function handler(req: any, res: any) {
+  
+  // --- CORS (minimal) ---
+  res.setHeader("Access-Control-Allow-Origin", "*"); // or set to your site origin
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).end(); // preflight OK, no body
+  }
+  
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
