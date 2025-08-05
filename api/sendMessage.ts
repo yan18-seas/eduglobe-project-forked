@@ -103,6 +103,10 @@ export default async function handler(req: any, res: any) {
     const { messages, language, conversationName } = body;
     console.log("📥 Incoming request with messages:", messages);
 
+    if (!Array.isArray(messages)) {
+      return res.status(400).json({ error: "Invalid or missing 'messages' array in request body" });
+    }
+    
     const userMessages = messages.filter(
       (m: { role: string }) => m.role === Role.USER
     );
