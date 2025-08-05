@@ -127,7 +127,7 @@ const App = () => {
                 const optimisticMessages = c.messages.filter(m => m.id !== userMessage.id);
                 return { 
                     ...c, 
-                    name: chatName || c.name, 
+                    name: conversationName || c.name,
                     messages: [...optimisticMessages, userMessage, aiMessage]
                 };
             }
