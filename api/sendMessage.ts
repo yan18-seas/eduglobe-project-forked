@@ -23,7 +23,7 @@ const translateText = async (
   const target = getLanguageCode(targetLang);
   if (target === "en") return text;
 
-  const url = `https://translation.googleapis.com/language/translate/v2?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://translation.googleapis.com/language/translate/v2?key=${process.env.GOOGLE_TRANSLATE_KEY}`;
   console.log("📡 Calling Translate API with target:", target);
 
   try {
