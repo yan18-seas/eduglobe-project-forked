@@ -113,18 +113,27 @@ export default async function handler(req: any, res: any) {
     const lastUserMessage = userMessages[userMessages.length - 1]?.text ?? "";
     console.log("🧠 Last user message:", lastUserMessage);
 
-    const translatedMessages = await Promise.all(
-      messages.map(async (msg) => {
-        const translatedText =
-          msg.role === Role.USER
-            ? await translateText(msg.text, Language.ENGLISH)
-            : msg.text;
-        return {
-          role: msg.role === Role.USER ? "user" : "model",
-          parts: [{ text: translatedText }],
-        };
-      })
-    );
+    const systemPrompt = SYSTEM_PROMPTS[language] || "";
+    
+    // Start the conversation with the system prompt
+    const translatedMessages = [
+      {
+        role: "user",
+        parts: [{ text: systemPrompt }],
+      },
+      ...(await Promise.all(
+        messages.map(async (msg) => {
+          const translatedText =
+            msg.role === Role.USER
+              ? await translateText(msg.text, Language.ENGLISH)
+              : msg.text;
+          return {
+            role: msg.role === Role.USER ? "user" : "model",
+            parts: [{ text: translatedText }],
+          };
+        })
+      )),
+    ];
 
     console.log("📜 Translated message history:", translatedMessages);
 
