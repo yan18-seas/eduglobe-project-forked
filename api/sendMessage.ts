@@ -114,27 +114,27 @@ export default async function handler(req: any, res: any) {
     console.log("🧠 Last user message:", lastUserMessage);
 
     const systemPrompt = SYSTEM_PROMPTS[language] || "";
-    
-    // Start the conversation with the system prompt
-    const translatedMessages = [
-      {
-        role: "user",
-        parts: [{ text: systemPrompt }],
-      },
-      ...(await Promise.all(
-        messages.map(async (msg) => {
-          const translatedText =
-            msg.role === Role.USER
-              ? await translateText(msg.text, Language.ENGLISH)
-              : msg.text;
-          return {
-            role: msg.role === Role.USER ? "user" : "model",
-            parts: [{ text: translatedText }],
-          };
-        })
-      )),
-    ];
 
+    const translatedMessages = await Promise.all(
+      messages.map(async (msg, idx) => {
+        // For the very first user message, prepend the system prompt
+        if (idx === 0 && msg.role === Role.USER) {
+          const translatedText = await translateText(msg.text, Language.ENGLISH);
+          return {
+            role: "user",
+            parts: [{ text: systemPrompt + "\n\n" + translatedText }],
+          };
+        }
+        const translatedText =
+          msg.role === Role.USER
+            ? await translateText(msg.text, Language.ENGLISH)
+            : msg.text;
+        return {
+          role: msg.role === Role.USER ? "user" : "model",
+          parts: [{ text: translatedText }],
+        };
+      })
+    );
     console.log("📜 Translated message history:", translatedMessages);
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
