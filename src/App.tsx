@@ -99,10 +99,16 @@ const App = () => {
                 ...(authenticatedUser && { 'Authorization': 'Bearer FAKE_TOKEN' })
             },
             body: JSON.stringify({
-                text: userMessage.text,
-                language: userMessage.language,
-                history: currentConvo.messages.slice(0, -1), // History *before* the new message
-                generateName: shouldGenerateName,
+              messages: [
+                ...currentConvo.messages.slice(0, -1),
+                {
+                  role: "user",
+                  text: userMessage.text,
+                  language: userMessage.language
+                }
+              ],
+              language: userMessage.language,
+              // Optionally, conversationName: ...
             })
         });
 
