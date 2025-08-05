@@ -7,7 +7,7 @@ import useLocalStorage from './hooks/useLocalStorage';
 
 import TypingTitle from './components/TypingTitle';
 import LanguageSelector from './components/LanguageSelector';
-import Logo from './components/Logo';f
+import Logo from './components/Logo';
 import FloatingSymbols from './components/FloatingSymbols';
 import ChatInput from './components/ChatInput';
 import ChatMessage from './components/ChatMessage';
@@ -99,9 +99,10 @@ const App = () => {
                 ...(authenticatedUser && { 'Authorization': 'Bearer FAKE_TOKEN' })
             },
             body: JSON.stringify({
-                messages: currentConvo.messages.concat(userMessage),
+                text: userMessage.text,
                 language: userMessage.language,
-                // conversationName: currentConvo.name, // optional
+                history: currentConvo.messages.slice(0, -1), // History *before* the new message
+                generateName: shouldGenerateName,
             })
         });
 
